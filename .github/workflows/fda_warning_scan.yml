@@ -2,10 +2,11 @@ name: FDA Warning Letters Monitor
 
 on:
   schedule:
-    # 对应美东时间凌晨 12:40 (目前夏令时 EDT，UTC 4:40)
-    # 周一至周五运行: 1-5
-    - cron: '40 4 * * 1-5'
-  workflow_dispatch: 
+    # 对应美东时间早上 09:21
+    # 夏令时 (EDT) 期间，UTC 为 13:21
+    # 冬令时 (EST) 期间，需手动改为 '21 14 * * 1-5'
+    - cron: '21 13 * * 1-5'
+  workflow_dispatch:
 
 permissions:
   contents: write
