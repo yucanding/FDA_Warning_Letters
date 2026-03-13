@@ -1,0 +1,41 @@
+name: FDA Warning Letters Monitor
+
+on:
+  schedule:
+    # 对应美东时间凌晨 12:40 (目前夏令时 EDT，UTC 4:40)
+    # 周一至周五运行: 1-5
+    - cron: '40 4 * * 1-5'
+  workflow_dispatch: 
+
+permissions:
+  contents: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4 yfinance lxml deep-translator
+
+      - name: Run Warning Letters Scanner
+        env:
+          # 直接复用你仓库已有的 Secrets
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+        run: python fda_warning_scanner.py
+
+      - name: Commit and Push Database
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          touch seen_warning_letters.txt
+          git add seen_warning_letters.txt
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update Warning Letters DB" && git push)
