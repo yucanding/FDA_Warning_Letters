@@ -13,13 +13,32 @@ TG_CHAT_ID = os.getenv('TG_CHAT_ID')
 DB_FILE = "seen_warning_letters.txt"
 
 def send_tg_message(text):
+    # 💡 核心修改：支持 TG_CHAT_ID 中填写多个 ID（如：个人ID,频道ID）
     if not TG_TOKEN or not TG_CHAT_ID:
+        print("⚠️ 未配置 TG 参数，仅本地打印。")
         return
+    
+    # 将 ID 字符串按逗号切分为列表，并清理空格
+    target_ids = [chat_id.strip() for chat_id in TG_CHAT_ID.split(',') if chat_id.strip()]
+    
     url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
-    try:
-        requests.post(url, json={"chat_id": TG_CHAT_ID, "text": text, "parse_mode": "HTML", "disable_web_page_preview": True}, timeout=20)
-    except:
-        pass
+    
+    for chat_id in target_ids:
+        try:
+            res = requests.post(url, json={
+                "chat_id": chat_id, 
+                "text": text, 
+                "parse_mode": "HTML", 
+                "disable_web_page_preview": True
+            }, timeout=20)
+            
+            # 💡 打印每个 ID 的发送结果，方便排查
+            print(f"📡 TG 发送状态 [{chat_id}]: {res.status_code}")
+            if res.status_code != 200:
+                print(f"   ⚠️ 详情: {res.text}")
+        except Exception as e:
+            # 捕获异常并打印，确保一个 ID 失败不会中断其他 ID 的发送
+            print(f"❌ TG 发送异常 [{chat_id}]: {e}")
 
 # --- 1. 日期与名称处理模块 ---
 def convert_date_to_chinese(date_str):
