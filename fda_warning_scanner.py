@@ -196,7 +196,7 @@ def main():
 
     # --- 4. 组装消息与推送 ---
     if records_to_send:
-        final_msg = f"<b>🚨FDA警告信预警 ({len(records_to_send)} 家上市企业)</b>\n\n"
+        final_msg = f"<b>🚨FDA警告信预警 ({len(records_to_send)}家上市企业)</b>\n\n"
         msg_blocks = []
         
         for idx, item in enumerate(records_to_send, 1):
@@ -206,7 +206,7 @@ def main():
                      f"    ⚠️原因: {item['subject']}\n"
                      f"    💰市值: ${item['cap']}B\n"
                      f"    💵股价: ${item['price']}\n"
-                     f'    🔗<a href="{item["link"]}">点击查看公告链接</a>')
+                     f'    🔗<a href="{item["link"]}">点击查看公告</a>')
                      # f"    🔗链接: {item['link']}")
             msg_blocks.append(block)
         
