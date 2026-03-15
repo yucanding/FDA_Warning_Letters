@@ -206,10 +206,12 @@ def main():
                      f"    ⚠️原因: {item['subject']}\n"
                      f"    💰市值: ${item['cap']}B\n"
                      f"    💵股价: ${item['price']}\n"
-                     f"    🔗链接: {item['link']}")
+                     f'    🔗<a href="{item["link"]}">点击查看公告链接</a>')
+                     # f"    🔗链接: {item['link']}")
             msg_blocks.append(block)
         
         final_msg += "\n\n---------------\n\n".join(msg_blocks)
+        final_msg += "\n\n#FDA #WarningLetters"
         send_tg_message(final_msg)
         
         # 只有在发现新记录时，才重写数据库文件
