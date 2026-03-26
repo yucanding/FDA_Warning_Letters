@@ -1,8 +1,7 @@
 name: FDA Warning Letters Monitor
 
 on:
-  # 保留手动触发接口，cron-job.org 调用的就是这个
-  workflow_dispatch:
+  workflow_dispatch: # 必须保留，供 cron-job.org 调用
 
 permissions:
   contents: write
@@ -12,15 +11,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4 # 升级到 v4，性能更好
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v5 # 升级到 v5，更稳定
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
       - name: Install dependencies
-        run: pip install requests beautifulsoup4 yfinance lxml deep_translator
+        run: pip install requests beautifulsoup4 yfinance lxml deep-translator
 
       - name: Run Warning Letters Scanner
         env:
@@ -28,11 +27,17 @@ jobs:
           TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
         run: python fda_warning_scanner.py
 
-      - name: Commit and Push Database
+      - name: Commit and Push Changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          touch seen_warning_letters.txt
-          git add seen_warning_letters.txt
-          # 只有在数据库有变化时才提交，防止空提交报错
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update Warning Letters DB" && git push)
+          # 确保这两个文件都存在并被追踪
+          touch seen_warning_letters.txt last_success_date.txt
+          git add seen_warning_letters.txt last_success_date.txt
+          # 检查是否有变化，有变化则提交并推送
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Auto-update DB and Success Status"
+            git push
+          fi
