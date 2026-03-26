@@ -1,11 +1,7 @@
 name: FDA Warning Letters Monitor
 
 on:
-  schedule:
-    # 每周二 (2) 执行
-    # 分钟设定为: 10,15,20,25,30
-    # 小时设定为: 13 (对应夏令时 09:xx)
-    - cron: '10,15,20,25,30 13 * * 2'
+  # 保留手动触发接口，cron-job.org 调用的就是这个
   workflow_dispatch:
 
 permissions:
@@ -16,19 +12,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4 # 升级到 v4，性能更好
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5 # 升级到 v5，更稳定
         with:
-          python-version: '3.9'
+          python-version: '3.10'
 
       - name: Install dependencies
-        run: pip install requests beautifulsoup4 yfinance lxml deep-translator
+        run: pip install requests beautifulsoup4 yfinance lxml deep_translator
 
       - name: Run Warning Letters Scanner
         env:
-          # 直接复用你仓库已有的 Secrets
           TG_TOKEN: ${{ secrets.TG_TOKEN }}
           TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
         run: python fda_warning_scanner.py
@@ -39,4 +34,5 @@ jobs:
           git config --local user.name "GitHub Action"
           touch seen_warning_letters.txt
           git add seen_warning_letters.txt
+          # 只有在数据库有变化时才提交，防止空提交报错
           git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update Warning Letters DB" && git push)
